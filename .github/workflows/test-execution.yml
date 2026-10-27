@@ -1,5 +1,7 @@
 name: Automation Regression Suite
 
+name: Automation Regression Suite
+
 on:
   push:
     branches: [ "main" ]
@@ -15,7 +17,6 @@ on:
         options:
           - chrome
           - firefox
-
 jobs:
   test:
     runs-on: ubuntu-latest
