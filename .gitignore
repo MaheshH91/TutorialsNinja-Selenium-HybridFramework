@@ -1,1 +1,72 @@
-/target/
+# ==========================================
+# Maven Build & Artifacts
+# ==========================================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ==========================================
+# Test Execution Outputs & Automation Reports
+# ==========================================
+test-output/
+Screenshots/
+logs/
+*.log
+surefire/
+surefire-reports/
+ExtentReports/
+
+# ==========================================
+# Eclipse IDE Metadata
+# ==========================================
+.classpath
+.project
+.settings/
+bin/
+.metadata/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# ==========================================
+# IntelliJ IDEA Metadata
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.idea_modules/
+
+# ==========================================
+# Visual Studio Code Metadata
+# ==========================================
+.vscode/
+*.code-workspace
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
