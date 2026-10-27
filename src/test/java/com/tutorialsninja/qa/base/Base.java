@@ -10,7 +10,7 @@ import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
-import com.tutorialsninja.qa.utilitis.UtilitiesCLS;
+import com.tutorialsninja.qa.utils.UtilitiesCLS;
 
 public class Base {
 

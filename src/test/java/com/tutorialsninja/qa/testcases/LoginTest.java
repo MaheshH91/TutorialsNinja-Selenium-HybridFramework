@@ -10,7 +10,7 @@ import com.tutorialsninja.qa.base.Base;
 import com.tutorialsninja.qa.pages.AccountPage;
 import com.tutorialsninja.qa.pages.HomePage;
 import com.tutorialsninja.qa.pages.LoginPage;
-import com.tutorialsninja.qa.utilitis.UtilitiesCLS;
+import com.tutorialsninja.qa.utils.UtilitiesCLS;
 
 public class LoginTest extends Base {
 

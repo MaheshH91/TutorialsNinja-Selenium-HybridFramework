@@ -1,4 +1,4 @@
-package com.tutorialsninja.qa.utilitis;
+package com.tutorialsninja.qa.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
