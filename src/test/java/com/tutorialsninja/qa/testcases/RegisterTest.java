@@ -1,6 +1,5 @@
 package com.tutorialsninja.qa.testcases;
 
-import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -14,79 +13,81 @@ import com.tutorialsninja.qa.utilitis.UtilitiesCLS;
 
 public class RegisterTest extends Base {
 
-	RegisterPage registerPage;
-	AccountSuccessPage accountSuccessPage;
+    private RegisterPage registerPage;
+    private AccountSuccessPage accountSuccessPage;
 
-	public RegisterTest() {
-		super();
-	}
+    public RegisterTest() {
+        super();
+    }
 
-	public WebDriver driver;
+    @BeforeMethod
+    public void setup() {
+        initializeBrowserAndOpenApplication(prop.getProperty("browserName"));
+        HomePage homePage = new HomePage(getDriver());
+        registerPage = homePage.navigateToRegisterPage();
+    }
 
-	@BeforeMethod
-	public void setup() {
+    @AfterMethod
+    public void tearDownTest() {
+        tearDown();
+    }
 
-		driver = initializeBrowserAndOpenApplicationURL(prop.getProperty("browserName"));
-		HomePage homePage = new HomePage(driver);
-		registerPage = homePage.navigateToRegisterPage();
+    @Test(priority = 1)
+    public void verifyRegisteringAnAccountWithMandatoryFields() {
+        accountSuccessPage = registerPage.registerWithMandatoryFields(
+                dataProp.getProperty("firstName"),
+                dataProp.getProperty("lastName"),
+                UtilitiesCLS.generateEmailWithTimeStamp(),
+                dataProp.getProperty("telephoneNumber"),
+                prop.getProperty("validPassword")
+        );
 
-	}
+        Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
+                dataProp.getProperty("accountSuccessfullyCreatedHeading"),
+                "Account Success page heading is not displayed correctly.");
+    }
 
-	@AfterMethod
-	public void tearDown() {
+    @Test(priority = 2)
+    public void verifyRegisteringAccountWithAllFields() {
+        accountSuccessPage = registerPage.registerWithAllFields(
+                dataProp.getProperty("firstName"),
+                dataProp.getProperty("lastName"),
+                UtilitiesCLS.generateEmailWithTimeStamp(),
+                dataProp.getProperty("telephoneNumber"),
+                prop.getProperty("validPassword")
+        );
 
-		driver.quit();
+        Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
+                dataProp.getProperty("accountSuccessfullyCreatedHeading"),
+                "Account Success page heading is not displayed correctly.");
+    }
 
-	}
+    @Test(priority = 3)
+    public void verifyRegisteringAccountWithExistingEmailAddress() {
+        registerPage.registerWithMandatoryFields(
+                dataProp.getProperty("firstName"),
+                dataProp.getProperty("lastName"),
+                prop.getProperty("validEmail"),
+                dataProp.getProperty("telephoneNumber"),
+                prop.getProperty("validPassword")
+        );
 
-	@Test(priority = 1)
-	public void verifyRegisteringAnAccountWithMandatoryFields() {
+        Assert.assertEquals(registerPage.retrieveDuplicateEmailAddressWarning(),
+                dataProp.getProperty("duplicateEmailWarning"),
+                "Warning message regarding duplicate email was not displayed.");
+    }
 
-		accountSuccessPage = registerPage.registerWithMandatoryFields(dataProp.getProperty("firstName"),
-				dataProp.getProperty("lastName"), UtilitiesCLS.generateEmailWithTimeStamp(),
-				dataProp.getProperty("telephoneNumber"), prop.getProperty("validPassword"));
-		Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
-				dataProp.getProperty("accountSuccessfullyCreatedHeading"), "Account Success page is not displayed");
+    @Test(priority = 4)
+    public void verifyRegisteringAccountWithoutFillingAnyInformation() {
+        registerPage.clickOnContinueButton();
 
-	}
-
-	@Test(priority = 2)
-	public void verifyRegisteringAccountByProvidingAllFields() {
-
-		accountSuccessPage = registerPage.registerWithAllFields(dataProp.getProperty("firstName"),
-				dataProp.getProperty("lastName"), UtilitiesCLS.generateEmailWithTimeStamp(),
-				dataProp.getProperty("telephoneNumber"), prop.getProperty("validPassword"));
-		Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
-				dataProp.getProperty("accountSuccessfullyCreatedHeading"), "Account Success page is not displayed");
-
-	}
-
-	@Test(priority = 3)
-	public void verifyRegisteringAccountWithExistingEmailAddress() {
-
-		registerPage.registerWithAllFields(dataProp.getProperty("firstName"), dataProp.getProperty("lastName"),
-				prop.getProperty("validEmail"), dataProp.getProperty("telephoneNumber"),
-				prop.getProperty("validPassword"));
-		Assert.assertTrue(
-				registerPage.retrieveDuplicateEmailAddressWarning()
-						.contains(dataProp.getProperty("duplicateEmailWarning")),
-				"Warning message regaring duplicate email address is not displayed");
-
-	}
-
-	@Test(priority = 4)
-	public void verifyRegisteringAccountWithoutFillingAnyDetails() {
-
-		registerPage.clickOnContinueButton();
-		Assert.assertTrue(
-				registerPage.displayStatusOfWarningMessages(
-				dataProp.getProperty("privacyPolicyWarning"),
-				dataProp.getProperty("firstNameWarning"),
-				dataProp.getProperty("lastNameWarning"),
-				dataProp.getProperty("emailWarning"),
-				dataProp.getProperty("telephoneWarning"),
-				dataProp.getProperty("passwordWarning")));
-
-	}
-
+        Assert.assertTrue(registerPage.displayStatusOfWarningMessages(
+                dataProp.getProperty("privacyPolicyWarning"),
+                dataProp.getProperty("firstNameWarning"),
+                dataProp.getProperty("lastNameWarning"),
+                dataProp.getProperty("emailWarning"),
+                dataProp.getProperty("telephoneWarning"),
+                dataProp.getProperty("passwordWarning")),
+                "Expected field warning messages were not displayed.");
+    }
 }
