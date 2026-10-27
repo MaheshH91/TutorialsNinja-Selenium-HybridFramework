@@ -5,9 +5,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>tnp</groupId>
-	<artifactId>TutorialsNinjaProject</artifactId>
+	<artifactId>TutorialsNinja-Selenium-HybridFramework</artifactId>
 	<version>1.0.0</version>
-	<name>TutorialsNinjaProject</name>
+	<name>TutorialsNinja-Selenium-HybridFramework</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
