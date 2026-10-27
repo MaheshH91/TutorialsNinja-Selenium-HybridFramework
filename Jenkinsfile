@@ -19,7 +19,7 @@ pipeline {
         )
         string(
             name: 'RECIPIENT_LIST', 
-            defaultValue: 'your-email@example.com', 
+            defaultValue: 'holkarmahesh@outlook.com', 
             description: 'Recipient email addresses separated by comma'
         )
     }
@@ -60,7 +60,7 @@ pipeline {
             testNG reportFilenamePattern: '**/testng-results.xml'
 
             emailext (
-                subject: "[${currentBuild.currentResult}] TutorialsNinja Automation Suite (Java 25) - Build #${env.BUILD_NUMBER}",
+                subject: "[${currentBuild.currentResult}] TutorialsNinja Automation Suite - Build #${env.BUILD_NUMBER}",
                 body: """
                     <!DOCTYPE html>
                     <html>
@@ -84,7 +84,7 @@ pipeline {
             )
         }
         success {
-            echo "Pipeline finished successfully on Java 25."
+            echo "Pipeline finished successfully."
         }
         failure {
             echo "Pipeline finished with failures."
