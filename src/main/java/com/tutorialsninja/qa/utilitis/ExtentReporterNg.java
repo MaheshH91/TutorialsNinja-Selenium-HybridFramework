@@ -1,7 +1,7 @@
 package com.tutorialsninja.qa.utilitis;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
@@ -20,28 +20,26 @@ public class ExtentReporterNg {
 
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportFile);
         sparkReporter.config().setTheme(Theme.DARK);
-        sparkReporter.config().setReportName("TutorialsNinja Automation Execution Report");
-        sparkReporter.config().setDocumentTitle("QA Execution Report");
+        sparkReporter.config().setReportName("TutorialsNinja Automation Test Results");
+        sparkReporter.config().setDocumentTitle("TN Automation Report");
         sparkReporter.config().setTimeStampFormat("yyyy-MM-dd HH:mm:ss");
 
         extentReport.attachReporter(sparkReporter);
 
         Properties configProp = new Properties();
-        File configFile = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "config.properties").toFile();
-
-        if (configFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(configFile)) {
+        try (InputStream fis = ExtentReporterNg.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (fis != null) {
                 configProp.load(fis);
-                extentReport.setSystemInfo("Application URL", configProp.getProperty("url", "N/A"));
-                extentReport.setSystemInfo("Browser", System.getProperty("browser", configProp.getProperty("browserName", "chrome")));
-            } catch (Exception e) {
-                // Fallback for CI environments
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        extentReport.setSystemInfo("OS", System.getProperty("os.name"));
-        extentReport.setSystemInfo("Java Version", System.getProperty("java.version"));
-        extentReport.setSystemInfo("Runner", System.getenv("CI") != null ? "CI Environment" : System.getProperty("user.name"));
+        extentReport.setSystemInfo("Application URL", configProp.getProperty("url", "https://tutorialsninja.com/demo/"));
+        extentReport.setSystemInfo("Browser Name", System.getProperty("browser", configProp.getProperty("browserName", "chrome")));
+        extentReport.setSystemInfo("Operating System", System.getProperty("os.name"));
+        extentReport.setSystemInfo("Java Runtime Version", System.getProperty("java.version"));
+        extentReport.setSystemInfo("Executed By", System.getenv("CI") != null ? "CI Agent" : System.getProperty("user.name"));
 
         return extentReport;
     }
