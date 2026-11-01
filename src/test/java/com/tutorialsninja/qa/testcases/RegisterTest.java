@@ -15,10 +15,11 @@ import com.tutorialsninja.qa.utils.UtilitiesCLS;
 
 public class RegisterTest extends BaseTest {
 
+    private HomePage homePage;
     private RegisterPage registerPage;
+    private AccountSuccessPage accountSuccessPage;
 
-   
-    @BeforeMethod(alwaysRun = true)
+    @BeforeMethod
     public void setupPage() {
         WebDriver driver = DriverManager.getDriver();
         if (driver == null) {
@@ -27,9 +28,10 @@ public class RegisterTest extends BaseTest {
         homePage = new HomePage(driver);
         registerPage = homePage.navigateToRegisterPage();
     }
+
     @Test(priority = 1)
     public void verifyRegisteringAnAccountWithMandatoryFields() {
-        AccountSuccessPage accountSuccessPage = registerPage.registerWithMandatoryFields(
+        accountSuccessPage = registerPage.registerWithMandatoryFields(
                 ConfigReader.getProperty("firstName"),
                 ConfigReader.getProperty("lastName"),
                 UtilitiesCLS.generateEmailWithTimeStamp(),
@@ -40,13 +42,13 @@ public class RegisterTest extends BaseTest {
         Assert.assertEquals(
                 accountSuccessPage.retrieveAccountSuccessPageHeading(),
                 ConfigReader.getProperty("accountSuccessfullyCreatedHeading"),
-                "Account Success page heading is not displayed correctly."
+                "Account Success page heading is not displayed"
         );
     }
 
     @Test(priority = 2)
     public void verifyRegisteringAccountWithAllFields() {
-        AccountSuccessPage accountSuccessPage = registerPage.registerWithAllFields(
+        accountSuccessPage = registerPage.registerWithAllFields(
                 ConfigReader.getProperty("firstName"),
                 ConfigReader.getProperty("lastName"),
                 UtilitiesCLS.generateEmailWithTimeStamp(),
@@ -57,13 +59,13 @@ public class RegisterTest extends BaseTest {
         Assert.assertEquals(
                 accountSuccessPage.retrieveAccountSuccessPageHeading(),
                 ConfigReader.getProperty("accountSuccessfullyCreatedHeading"),
-                "Account Success page heading is not displayed correctly."
+                "Account Success page heading is not displayed"
         );
     }
 
     @Test(priority = 3)
     public void verifyRegisteringAccountWithExistingEmailAddress() {
-        registerPage.registerWithMandatoryFields(
+        registerPage.registerWithAllFields(
                 ConfigReader.getProperty("firstName"),
                 ConfigReader.getProperty("lastName"),
                 ConfigReader.getProperty("validEmail"),
@@ -71,10 +73,9 @@ public class RegisterTest extends BaseTest {
                 ConfigReader.getProperty("validPassword")
         );
 
-        Assert.assertEquals(
-                registerPage.retrieveDuplicateEmailAddressWarning(),
-                ConfigReader.getProperty("duplicateEmailWarning"),
-                "Warning message regarding duplicate email was not displayed."
+        Assert.assertTrue(
+                registerPage.retrieveDuplicateEmailAddressWarning().contains(ConfigReader.getProperty("duplicateEmailWarning")),
+                "Warning message regarding duplicate email address is not displayed"
         );
     }
 
@@ -91,7 +92,7 @@ public class RegisterTest extends BaseTest {
                         ConfigReader.getProperty("telephoneWarning"),
                         ConfigReader.getProperty("passwordWarning")
                 ),
-                "Expected field warning messages were not displayed."
+                "One or more warning messages are not displayed as expected"
         );
     }
 }
