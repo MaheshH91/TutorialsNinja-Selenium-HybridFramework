@@ -3,6 +3,7 @@ package com.tutorialsninja.qa.pages;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class RegisterPage extends BasePage {
 
@@ -53,6 +54,10 @@ public class RegisterPage extends BasePage {
 
     public RegisterPage(WebDriver driver) {
         super(driver);
+        wait.until(ExpectedConditions.or(
+            ExpectedConditions.urlContains("route=account/register"),
+            ExpectedConditions.visibilityOf(firstNameField)
+        ));
     }
 
     public void enterFirstName(String firstNameText) {
