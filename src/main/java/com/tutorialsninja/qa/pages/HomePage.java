@@ -24,6 +24,9 @@ public class HomePage extends BasePage {
     @FindBy(xpath = "//div[@id='search']/descendant::button")
     private WebElement searchButton;
 
+    private static final By MY_ACCOUNT_FALLBACK_LOCATOR = 
+            By.xpath("//a[@title='My Account' or contains(., 'My Account')]");
+
     public HomePage(WebDriver driver) {
         super(driver);
     }
@@ -47,11 +50,14 @@ public class HomePage extends BasePage {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(myAccountDropMenu)).click();
         } catch (Exception e) {
-            // Robust CI fallback: interact directly with the parent anchor tag via JavaScript
-            ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();", 
-                driver.findElement(By.xpath("//a[@title='My Account' or contains(., 'My Account')]"))
-            );
+            try {
+                WebElement fallbackElement = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(MY_ACCOUNT_FALLBACK_LOCATOR)
+                );
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", fallbackElement);
+            } catch (Exception ex) {
+                logger.warn("My Account dropdown could not be clicked: {}", ex.getMessage());
+            }
         }
     }
 
@@ -59,7 +65,6 @@ public class HomePage extends BasePage {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(loginOption)).click();
         } catch (Exception e) {
-            // If the dropdown fails to expand under Linux headless, navigate directly to route
             ((JavascriptExecutor) driver).executeScript("window.location.href='index.php?route=account/login';");
         }
         return new LoginPage(driver);
@@ -74,7 +79,6 @@ public class HomePage extends BasePage {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(registerOption)).click();
         } catch (Exception e) {
-            // If the dropdown fails to expand under Linux headless, navigate directly to route
             ((JavascriptExecutor) driver).executeScript("window.location.href='index.php?route=account/register';");
         }
         return new RegisterPage(driver);

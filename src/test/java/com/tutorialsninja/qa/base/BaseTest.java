@@ -1,29 +1,52 @@
 package com.tutorialsninja.qa.base;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
 import com.tutorialsninja.qa.driver.DriverFactory;
 import com.tutorialsninja.qa.driver.DriverManager;
 import com.tutorialsninja.qa.utils.ConfigReader;
 
-public abstract class BaseTest {
+public class BaseTest {
 
-    @Parameters({"browser"})
-    @BeforeMethod(alwaysRun = true)
-    public void setUp(@Optional String browserXml) {
-        String targetBrowser = (browserXml != null && !browserXml.isBlank()) 
-                ? browserXml 
-                : ConfigReader.getBrowser();
+    protected static final Logger logger = LogManager.getLogger(BaseTest.class);
 
-        WebDriver driver = DriverFactory.createDriver(targetBrowser, ConfigReader.isHeadless());
+    @BeforeMethod
+    public void setUp() {
+        String browserName = ConfigReader.getBrowser();
+        boolean isHeadless = ConfigReader.isHeadless();
+
+        WebDriver driver = DriverFactory.createDriver(browserName, isHeadless);
         DriverManager.setDriver(driver);
-        DriverManager.getDriver().get(ConfigReader.getUrl());
+
+        String url = ConfigReader.getUrl();
+        loadUrlWithRetry(driver, url, 3);
     }
 
-    @AfterMethod(alwaysRun = true)
+    private void loadUrlWithRetry(WebDriver driver, String url, int maxAttempts) {
+        int attempt = 0;
+        while (attempt < maxAttempts) {
+            try {
+                attempt++;
+                driver.get(url);
+                return;
+            } catch (Exception e) {
+                logger.warn("Failed to load URL on attempt {} of {}: {}", attempt, maxAttempts, e.getMessage());
+                if (attempt == maxAttempts) {
+                    throw e;
+                }
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    @AfterMethod
     public void tearDown() {
         DriverManager.quitDriver();
     }

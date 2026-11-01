@@ -2,6 +2,7 @@ package com.tutorialsninja.qa.driver;
 
 import java.time.Duration;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -22,6 +23,7 @@ public final class DriverFactory {
         switch (browser) {
             case "firefox":
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
+                firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
                 if (isHeadless) {
                     firefoxOptions.addArguments("-headless");
                     firefoxOptions.addArguments("--width=1920");
@@ -32,6 +34,7 @@ public final class DriverFactory {
 
             case "edge":
                 EdgeOptions edgeOptions = new EdgeOptions();
+                edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
                 if (isHeadless) {
                     edgeOptions.addArguments("--headless=new");
                     edgeOptions.addArguments("--no-sandbox");
@@ -46,6 +49,7 @@ public final class DriverFactory {
             case "chrome":
             default:
                 ChromeOptions chromeOptions = new ChromeOptions();
+                chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
                 if (isHeadless) {
                     chromeOptions.addArguments("--headless=new");
                     chromeOptions.addArguments("--no-sandbox");
@@ -61,7 +65,6 @@ public final class DriverFactory {
                 break;
         }
 
-        // Explicitly set the window size via WebDriver API for Linux virtual framebuffers
         driver.manage().window().setSize(new Dimension(1920, 1080));
         driver.manage().window().maximize();
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.PAGE_LOAD_TIMEOUT));
