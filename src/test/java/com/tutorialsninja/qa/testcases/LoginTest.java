@@ -1,5 +1,6 @@
 package com.tutorialsninja.qa.testcases;
 
+import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -18,10 +19,15 @@ import com.tutorialsninja.qa.utils.UtilitiesCLS;
 public class LoginTest extends BaseTest {
 
     private LoginPage loginPage;
-
+    private HomePage homePage;
+    
     @BeforeMethod(alwaysRun = true)
     public void setupPage() {
-        HomePage homePage = new HomePage(DriverManager.getDriver());
+        WebDriver driver = DriverManager.getDriver();
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver initialization failed in BaseTest.setUp(). Skipping page setup.");
+        }
+        homePage = new HomePage(driver);
         loginPage = homePage.navigateToLoginPage();
     }
 

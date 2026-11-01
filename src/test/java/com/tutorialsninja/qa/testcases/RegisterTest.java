@@ -1,5 +1,6 @@
 package com.tutorialsninja.qa.testcases;
 
+import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -16,12 +17,16 @@ public class RegisterTest extends BaseTest {
 
     private RegisterPage registerPage;
 
+   
     @BeforeMethod(alwaysRun = true)
     public void setupPage() {
-        HomePage homePage = new HomePage(DriverManager.getDriver());
+        WebDriver driver = DriverManager.getDriver();
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver initialization failed in BaseTest.setUp(). Skipping page setup.");
+        }
+        homePage = new HomePage(driver);
         registerPage = homePage.navigateToRegisterPage();
     }
-
     @Test(priority = 1)
     public void verifyRegisteringAnAccountWithMandatoryFields() {
         AccountSuccessPage accountSuccessPage = registerPage.registerWithMandatoryFields(

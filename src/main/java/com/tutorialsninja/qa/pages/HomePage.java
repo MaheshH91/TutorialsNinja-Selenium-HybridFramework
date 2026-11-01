@@ -7,6 +7,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import com.tutorialsninja.qa.utils.ConfigReader;
+
 public class HomePage extends BasePage {
 
     @FindBy(xpath = "//span[text()='My Account']")
@@ -62,11 +64,16 @@ public class HomePage extends BasePage {
     }
 
     public LoginPage selectLoginOption() {
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver instance is null inside HomePage.");
+        }
         try {
             wait.until(ExpectedConditions.elementToBeClickable(loginOption)).click();
         } catch (Exception e) {
             String currentUrl = driver.getCurrentUrl();
-            String baseUrl = currentUrl.split("index\\.php")[0];
+            String baseUrl = (currentUrl != null && currentUrl.contains("index.php")) 
+                    ? currentUrl.split("index\\.php")[0] 
+                    : ConfigReader.getUrl();
             driver.get(baseUrl + "index.php?route=account/login");
         }
         return new LoginPage(driver);
@@ -78,16 +85,21 @@ public class HomePage extends BasePage {
     }
 
     public RegisterPage selectRegisterOption() {
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver instance is null inside HomePage.");
+        }
         try {
             wait.until(ExpectedConditions.elementToBeClickable(registerOption)).click();
         } catch (Exception e) {
             String currentUrl = driver.getCurrentUrl();
-            String baseUrl = currentUrl.split("index\\.php")[0];
+            String baseUrl = (currentUrl != null && currentUrl.contains("index.php")) 
+                    ? currentUrl.split("index\\.php")[0] 
+                    : ConfigReader.getUrl();
             driver.get(baseUrl + "index.php?route=account/register");
         }
         return new RegisterPage(driver);
     }
-
+    
     public RegisterPage navigateToRegisterPage() {
         clickOnMyAccount();
         return selectRegisterOption();
