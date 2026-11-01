@@ -1,9 +1,16 @@
 pipeline {
     agent any
 
-    tools {
+   /* tools {
         maven 'Maven-3.9'
         jdk 'JDK-25'
+    }*/
+    
+    environment {
+        // Update these paths to match your local installation directories
+        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-25'
+        M2_HOME   = 'C:\\Program Files\\apache-maven-3.9.6'
+        PATH      = "${env.JAVA_HOME}\\bin;${env.M2_HOME}\\bin;${env.PATH}"
     }
 
     parameters {
