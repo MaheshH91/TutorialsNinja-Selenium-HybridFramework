@@ -1,16 +1,9 @@
 pipeline {
     agent any
 
-   /* tools {
-        maven 'Maven-3.9'
-        jdk 'JDK-25'
-    }*/
-    
-    environment {
-        // Update these paths to match your local installation directories
-        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-25'
-        M2_HOME   = 'C:\\Program Files\\apache-maven-3.9.6'
-        PATH      = "${env.JAVA_HOME}\\bin;${env.M2_HOME}\\bin;${env.PATH}"
+   tools {
+        maven 'MAVEN_HOME'
+        jdk 'JAVA_HOME'
     }
 
     parameters {
@@ -26,7 +19,7 @@ pipeline {
         )
         string(
             name: 'RECIPIENT_LIST',
-            defaultValue: 'maheshholkar14@gmail.com',
+            defaultValue: 'holkarmahesh1@gmail.com',
             description: 'Comma-separated recipient emails for execution notification'
         )
     }
