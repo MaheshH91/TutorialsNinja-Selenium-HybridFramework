@@ -8,45 +8,67 @@ pipeline {
 
     parameters {
         choice(
-            name: 'BROWSER', 
-            choices: ['chrome', 'firefox', 'edge'], 
-            description: 'Select browser for test execution'
+            name: 'BROWSER',
+            choices: ['chrome', 'firefox', 'edge'],
+            description: 'Target browser for test execution'
         )
         booleanParam(
-            name: 'HEADLESS', 
-            defaultValue: true, 
-            description: 'Run tests in headless mode (recommended for CI)'
+            name: 'HEADLESS',
+            defaultValue: true,
+            description: 'Run browser in headless mode (recommended for CI agents)'
         )
         string(
-            name: 'RECIPIENT_LIST', 
-            defaultValue: 'holkarmahesh@outlook.com', 
-            description: 'Recipient email addresses separated by comma'
+            name: 'RECIPIENT_LIST',
+            defaultValue: 'maheshholkar14@gmail.com',
+            description: 'Comma-separated recipient emails for execution notification'
         )
     }
 
     options {
-        timeout(time: 60, unit: 'MINUTES')
+        timeout(time: 45, unit: 'MINUTES')
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
     }
 
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace & Checkout') {
             steps {
                 cleanWs()
                 checkout scm
             }
         }
 
-        stage('Build & Test Execution') {
+        stage('Environment Diagnostic') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            java -version
+                            mvn -version
+                            google-chrome --version || echo "Chrome not directly on path, SeleniumManager will resolve"
+                        '''
+                    } else {
+                        bat '''
+                            java -version
+                            mvn -version
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Run Automation Regression Suite') {
             steps {
                 script {
                     def mavenCmd = "mvn clean test -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}"
                     
-                    if (isUnix()) {
-                        sh "${mavenCmd}"
-                    } else {
-                        bat "${mavenCmd}"
+                    // Allow pipeline to proceed to post-build reporting stages even on test assertions/failures
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        if (isUnix()) {
+                            sh "${mavenCmd}"
+                        } else {
+                            bat "${mavenCmd}"
+                        }
                     }
                 }
             }
@@ -55,25 +77,67 @@ pipeline {
 
     post {
         always {
+            // 1. Archive Extent Reports & Surefire Logs
             archiveArtifacts artifacts: 'test-output/ExtentReports/*.html, target/surefire-reports/**/*', allowEmptyArchive: true
 
-            testNG reportFilenamePattern: '**/testng-results.xml'
+            // 2. Publish TestNG XML Results
+            testNG reportFilenamePattern: 'target/surefire-reports/testng-results.xml'
 
+            // 3. Publish HTML Report inside Jenkins UI (Requires HTML Publisher Plugin)
+            publishHTML target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'test-output/ExtentReports',
+                reportFiles: 'extentReport.html',
+                reportName: 'Extent Execution Dashboard'
+            ]
+
+            // 4. Send Rich HTML Email Notification with Attached Extent Report (Requires Email Extension Plugin)
             emailext (
                 subject: "[${currentBuild.currentResult}] TutorialsNinja Automation Suite - Build #${env.BUILD_NUMBER}",
                 body: """
                     <!DOCTYPE html>
                     <html>
-                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                        <h2 style="color: #0056b3;">Test Execution Summary (Java 25)</h2>
-                        <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><b>Job Name:</b></td><td style="padding: 8px; border: 1px solid #ddd;">${env.JOB_NAME}</td></tr>
-                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><b>Build Number:</b></td><td style="padding: 8px; border: 1px solid #ddd;">#${env.BUILD_NUMBER}</td></tr>
-                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><b>Status:</b></td><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: ${currentBuild.currentResult == 'SUCCESS' ? 'green' : 'red'};">${currentBuild.currentResult}</td></tr>
-                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><b>Browser:</b></td><td style="padding: 8px; border: 1px solid #ddd;">${params.BROWSER}</td></tr>
-                            <tr><td style="padding: 8px; border: 1px solid #ddd;"><b>Console URL:</b></td><td style="padding: 8px; border: 1px solid #ddd;"><a href="${env.BUILD_URL}">View Build Details</a></td></tr>
-                        </table>
-                        <p><i>The Extent Execution Report has been attached to this email.</i></p>
+                    <head>
+                        <style>
+                            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #24292e; line-height: 1.5; }
+                            .container { max-width: 650px; margin: 20px auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 6px; }
+                            .header { border-bottom: 2px solid #0366d6; padding-bottom: 12px; margin-bottom: 16px; }
+                            .title { font-size: 20px; font-weight: 600; color: #0366d6; margin: 0; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                            th, td { padding: 10px; border: 1px solid #e1e4e8; text-align: left; font-size: 14px; }
+                            th { background-color: #f6f8fa; }
+                            .status-success { color: #28a745; font-weight: bold; }
+                            .status-failure { color: #cb2431; font-weight: bold; }
+                            .status-unstable { color: #b08800; font-weight: bold; }
+                            .footer { margin-top: 20px; font-size: 12px; color: #586069; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h2 class="title">Test Execution Report (Java 25)</h2>
+                            </div>
+                            <p>Automation regression execution has completed on Jenkins.</p>
+                            <table>
+                                <tr><th>Project</th><td>${env.JOB_NAME}</td></tr>
+                                <tr><th>Build Number</th><td>#${env.BUILD_NUMBER}</td></tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        <span class="${currentBuild.currentResult == 'SUCCESS' ? 'status-success' : (currentBuild.currentResult == 'UNSTABLE' ? 'status-unstable' : 'status-failure')}">
+                                            ${currentBuild.currentResult}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr><th>Target Browser</th><td>${params.BROWSER} (Headless: ${params.HEADLESS})</td></tr>
+                                <tr><th>Build URL</th><td><a href="${env.BUILD_URL}">View Console Log & Artifacts</a></td></tr>
+                            </table>
+                            <p class="footer">
+                                <i>Note: The single-file dark-themed Extent HTML Report is attached to this email.</i>
+                            </p>
+                        </div>
                     </body>
                     </html>
                 """,
@@ -84,10 +148,13 @@ pipeline {
             )
         }
         success {
-            echo "Pipeline finished successfully."
+            echo "Regression Suite executed with 100% Pass Rate."
+        }
+        unstable {
+            echo "Regression Suite completed with test assertions or failures."
         }
         failure {
-            echo "Pipeline finished with failures."
+            echo "Pipeline run terminated due to compilation, build, or infrastructure error."
         }
     }
 }
