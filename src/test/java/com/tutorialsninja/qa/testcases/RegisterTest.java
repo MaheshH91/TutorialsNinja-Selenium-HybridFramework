@@ -1,93 +1,92 @@
 package com.tutorialsninja.qa.testcases;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tutorialsninja.qa.base.Base;
+import com.tutorialsninja.qa.base.BaseTest;
+import com.tutorialsninja.qa.driver.DriverManager;
 import com.tutorialsninja.qa.pages.AccountSuccessPage;
 import com.tutorialsninja.qa.pages.HomePage;
 import com.tutorialsninja.qa.pages.RegisterPage;
+import com.tutorialsninja.qa.utils.ConfigReader;
 import com.tutorialsninja.qa.utils.UtilitiesCLS;
 
-public class RegisterTest extends Base {
+public class RegisterTest extends BaseTest {
 
     private RegisterPage registerPage;
-    private AccountSuccessPage accountSuccessPage;
 
-    public RegisterTest() {
-        super();
-    }
-
-    @BeforeMethod
-    public void setup() {
-        initializeBrowserAndOpenApplication(prop.getProperty("browserName"));
-        HomePage homePage = new HomePage(getDriver());
+    @BeforeMethod(alwaysRun = true)
+    public void setupPage() {
+        HomePage homePage = new HomePage(DriverManager.getDriver());
         registerPage = homePage.navigateToRegisterPage();
-    }
-
-    @AfterMethod
-    public void tearDownTest() {
-        tearDown();
     }
 
     @Test(priority = 1)
     public void verifyRegisteringAnAccountWithMandatoryFields() {
-        accountSuccessPage = registerPage.registerWithMandatoryFields(
-                dataProp.getProperty("firstName"),
-                dataProp.getProperty("lastName"),
+        AccountSuccessPage accountSuccessPage = registerPage.registerWithMandatoryFields(
+                ConfigReader.getProperty("firstName"),
+                ConfigReader.getProperty("lastName"),
                 UtilitiesCLS.generateEmailWithTimeStamp(),
-                dataProp.getProperty("telephoneNumber"),
-                prop.getProperty("validPassword")
+                ConfigReader.getProperty("telephoneNumber"),
+                ConfigReader.getProperty("validPassword")
         );
 
-        Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
-                dataProp.getProperty("accountSuccessfullyCreatedHeading"),
-                "Account Success page heading is not displayed correctly.");
+        Assert.assertEquals(
+                accountSuccessPage.retrieveAccountSuccessPageHeading(),
+                ConfigReader.getProperty("accountSuccessfullyCreatedHeading"),
+                "Account Success page heading is not displayed correctly."
+        );
     }
 
     @Test(priority = 2)
     public void verifyRegisteringAccountWithAllFields() {
-        accountSuccessPage = registerPage.registerWithAllFields(
-                dataProp.getProperty("firstName"),
-                dataProp.getProperty("lastName"),
+        AccountSuccessPage accountSuccessPage = registerPage.registerWithAllFields(
+                ConfigReader.getProperty("firstName"),
+                ConfigReader.getProperty("lastName"),
                 UtilitiesCLS.generateEmailWithTimeStamp(),
-                dataProp.getProperty("telephoneNumber"),
-                prop.getProperty("validPassword")
+                ConfigReader.getProperty("telephoneNumber"),
+                ConfigReader.getProperty("validPassword")
         );
 
-        Assert.assertEquals(accountSuccessPage.retrieveAccountSuccessPageHeading(),
-                dataProp.getProperty("accountSuccessfullyCreatedHeading"),
-                "Account Success page heading is not displayed correctly.");
+        Assert.assertEquals(
+                accountSuccessPage.retrieveAccountSuccessPageHeading(),
+                ConfigReader.getProperty("accountSuccessfullyCreatedHeading"),
+                "Account Success page heading is not displayed correctly."
+        );
     }
 
     @Test(priority = 3)
     public void verifyRegisteringAccountWithExistingEmailAddress() {
         registerPage.registerWithMandatoryFields(
-                dataProp.getProperty("firstName"),
-                dataProp.getProperty("lastName"),
-                prop.getProperty("validEmail"),
-                dataProp.getProperty("telephoneNumber"),
-                prop.getProperty("validPassword")
+                ConfigReader.getProperty("firstName"),
+                ConfigReader.getProperty("lastName"),
+                ConfigReader.getProperty("validEmail"),
+                ConfigReader.getProperty("telephoneNumber"),
+                ConfigReader.getProperty("validPassword")
         );
 
-        Assert.assertEquals(registerPage.retrieveDuplicateEmailAddressWarning(),
-                dataProp.getProperty("duplicateEmailWarning"),
-                "Warning message regarding duplicate email was not displayed.");
+        Assert.assertEquals(
+                registerPage.retrieveDuplicateEmailAddressWarning(),
+                ConfigReader.getProperty("duplicateEmailWarning"),
+                "Warning message regarding duplicate email was not displayed."
+        );
     }
 
     @Test(priority = 4)
     public void verifyRegisteringAccountWithoutFillingAnyInformation() {
-        registerPage.clickOnContinueButton();
+        registerPage.clickContinue();
 
-        Assert.assertTrue(registerPage.displayStatusOfWarningMessages(
-                dataProp.getProperty("privacyPolicyWarning"),
-                dataProp.getProperty("firstNameWarning"),
-                dataProp.getProperty("lastNameWarning"),
-                dataProp.getProperty("emailWarning"),
-                dataProp.getProperty("telephoneWarning"),
-                dataProp.getProperty("passwordWarning")),
-                "Expected field warning messages were not displayed.");
+        Assert.assertTrue(
+                registerPage.displayStatusOfWarningMessages(
+                        ConfigReader.getProperty("privacyPolicyWarning"),
+                        ConfigReader.getProperty("firstNameWarning"),
+                        ConfigReader.getProperty("lastNameWarning"),
+                        ConfigReader.getProperty("emailWarning"),
+                        ConfigReader.getProperty("telephoneWarning"),
+                        ConfigReader.getProperty("passwordWarning")
+                ),
+                "Expected field warning messages were not displayed."
+        );
     }
 }

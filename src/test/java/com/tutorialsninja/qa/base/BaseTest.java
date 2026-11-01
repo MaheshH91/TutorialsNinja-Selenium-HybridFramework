@@ -1,42 +1,29 @@
 package com.tutorialsninja.qa.base;
 
-import java.io.InputStream;
-import java.util.Properties;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import com.tutorialsninja.qa.driver.DriverFactory;
 import com.tutorialsninja.qa.driver.DriverManager;
+import com.tutorialsninja.qa.utils.ConfigReader;
 
-public class BaseTest {
+public abstract class BaseTest {
 
-    protected Properties prop;
-    protected Properties dataProp;
+    @Parameters({"browser"})
+    @BeforeMethod(alwaysRun = true)
+    public void setUp(@Optional String browserXml) {
+        String targetBrowser = (browserXml != null && !browserXml.isBlank()) 
+                ? browserXml 
+                : ConfigReader.getBrowser();
 
-    public BaseTest() {
-        prop = new Properties();
-        dataProp = new Properties();
-
-        try (InputStream fisProp = getClass().getClassLoader().getResourceAsStream("config.properties");
-             InputStream fisDataProp = getClass().getClassLoader().getResourceAsStream("testdata.properties")) {
-            if (fisProp != null) prop.load(fisProp);
-            if (fisDataProp != null) dataProp.load(fisDataProp);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @BeforeMethod
-    public void setUp() {
-        String browser = System.getProperty("browser", prop.getProperty("browserName", "chrome"));
-        boolean headless = Boolean.parseBoolean(System.getProperty("headless", "false"));
-
-        WebDriver driver = DriverFactory.createDriver(browser, headless);
+        WebDriver driver = DriverFactory.createDriver(targetBrowser, ConfigReader.isHeadless());
         DriverManager.setDriver(driver);
-        DriverManager.getDriver().get(prop.getProperty("url"));
+        DriverManager.getDriver().get(ConfigReader.getUrl());
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     public void tearDown() {
         DriverManager.quitDriver();
     }
