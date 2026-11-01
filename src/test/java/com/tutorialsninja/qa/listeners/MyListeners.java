@@ -2,6 +2,7 @@ package com.tutorialsninja.qa.listeners;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.IConfigurationListener;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -14,7 +15,7 @@ import com.tutorialsninja.qa.utils.ExtentManager;
 import com.tutorialsninja.qa.utils.ExtentReporterNg;
 import com.tutorialsninja.qa.utils.ScreenshotUtils;
 
-public class MyListeners implements ITestListener {
+public class MyListeners implements ITestListener, IConfigurationListener {
 
     private static final Logger logger = LogManager.getLogger(MyListeners.class);
     private static ExtentReports extentReports;
@@ -53,27 +54,35 @@ public class MyListeners implements ITestListener {
         
         if (ExtentManager.getTest() != null) {
             ExtentManager.getTest().log(Status.FAIL, result.getThrowable());
-
-            if (DriverManager.getDriver() != null) {
-                try {
-                    String base64Screenshot = ScreenshotUtils.getBase64Screenshot(DriverManager.getDriver());
-                    ExtentManager.getTest().addScreenCaptureFromBase64String("data:image/png;base64," + base64Screenshot, result.getName());
-                    ScreenshotUtils.captureScreenshotFile(DriverManager.getDriver(), result.getName());
-                } catch (Exception e) {
-                    logger.error("Failed to capture screenshot for test {}: {}", result.getName(), e.getMessage());
-                    ExtentManager.getTest().log(Status.WARNING, "Failed to capture screenshot: " + e.getMessage());
-                }
-            }
+            captureAndAttachScreenshot(result.getName());
             ExtentManager.unload();
         }
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        logger.warn("Test SKIPPED: {}", result.getName());
+        logger.warn("Test SKIPPED: {} | Cause: {}", result.getName(), result.getThrowable());
         if (ExtentManager.getTest() != null) {
-            ExtentManager.getTest().log(Status.SKIP, result.getName() + " was skipped.");
+            if (result.getThrowable() != null) {
+                ExtentManager.getTest().log(Status.SKIP, result.getThrowable());
+            } else {
+                ExtentManager.getTest().log(Status.SKIP, result.getName() + " was skipped.");
+            }
             ExtentManager.unload();
+        }
+    }
+
+    @Override
+    public void onConfigurationFailure(ITestResult result) {
+        logger.error("CONFIGURATION FAILED: {} in class {} | Cause: {}", 
+                result.getMethod().getMethodName(), 
+                result.getTestClass().getName(), 
+                result.getThrowable());
+
+        if (ExtentManager.getTest() != null) {
+            ExtentManager.getTest().log(Status.FAIL, "Configuration failed during: " 
+                    + result.getMethod().getMethodName() + "<br>" + result.getThrowable());
+            captureAndAttachScreenshot("Config_Fail_" + result.getMethod().getMethodName());
         }
     }
 
@@ -82,6 +91,22 @@ public class MyListeners implements ITestListener {
         logger.info("Finishing Test Suite: {}", context.getName());
         if (extentReports != null) {
             extentReports.flush();
+        }
+        ExtentManager.unload();
+    }
+
+    private void captureAndAttachScreenshot(String screenshotName) {
+        if (DriverManager.getDriver() != null) {
+            try {
+                String base64Screenshot = ScreenshotUtils.getBase64Screenshot(DriverManager.getDriver());
+                if (base64Screenshot != null && !base64Screenshot.isEmpty()) {
+                    ExtentManager.getTest().addScreenCaptureFromBase64String("data:image/png;base64," + base64Screenshot, screenshotName);
+                }
+                ScreenshotUtils.captureScreenshotFile(DriverManager.getDriver(), screenshotName);
+            } catch (Exception e) {
+                logger.error("Failed to capture screenshot: {}", e.getMessage());
+                ExtentManager.getTest().log(Status.WARNING, "Failed to capture screenshot: " + e.getMessage());
+            }
         }
     }
 }

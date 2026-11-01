@@ -41,28 +41,38 @@ public class HomePage extends BasePage {
     }
 
     public void clickOnMyAccount() {
-        click(myAccountDropMenu);
+        try {
+            click(myAccountDropMenu);
+        } catch (Exception e) {
+            jsClick(myAccountDropMenu);
+        }
     }
 
     public LoginPage selectLoginOption() {
-        click(loginOption);
+        try {
+            click(loginOption);
+        } catch (Exception e) {
+            jsClick(loginOption);
+        }
         return new LoginPage(driver);
     }
 
     public LoginPage navigateToLoginPage() {
-        click(myAccountDropMenu);
-        click(loginOption);
-        return new LoginPage(driver);
+        clickOnMyAccount();
+        return selectLoginOption();
     }
 
     public RegisterPage selectRegisterOption() {
-        click(registerOption);
+        try {
+            click(registerOption);
+        } catch (Exception e) {
+            jsClick(registerOption);
+        }
         return new RegisterPage(driver);
     }
 
     public RegisterPage navigateToRegisterPage() {
-        click(myAccountDropMenu);
-        click(registerOption);
-        return new RegisterPage(driver);
+        clickOnMyAccount();
+        return selectRegisterOption();
     }
 }

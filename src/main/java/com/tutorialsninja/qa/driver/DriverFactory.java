@@ -36,14 +36,14 @@ public final class DriverFactory {
 		default:
 			ChromeOptions chromeOptions = new ChromeOptions();
 			if (isHeadless) {
-				chromeOptions.addArguments("--headless=new");
-				chromeOptions.addArguments("--no-sandbox");
-				chromeOptions.addArguments("--disable-dev-shm-usage");
-				chromeOptions.addArguments("--disable-gpu");
-				chromeOptions.addArguments("--window-size=1920,1080");
-				chromeOptions.addArguments("--remote-allow-origins=*");
-				chromeOptions.addArguments("--disable-extensions");
-				chromeOptions.addArguments("--disable-notifications");
+			    chromeOptions.addArguments("--headless=new");
+			    chromeOptions.addArguments("--no-sandbox");
+			    chromeOptions.addArguments("--disable-dev-shm-usage");
+			    chromeOptions.addArguments("--disable-gpu");
+			    chromeOptions.addArguments("--window-size=1920,1080");
+			    chromeOptions.addArguments("--start-maximized");
+			    chromeOptions.addArguments("--ignore-certificate-errors");
+			    chromeOptions.addArguments("--remote-allow-origins=*");
 			}
 			driver = new ChromeDriver(chromeOptions);
 			break;

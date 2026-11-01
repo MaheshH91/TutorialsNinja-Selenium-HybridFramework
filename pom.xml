@@ -19,7 +19,7 @@
 		<browser>chrome</browser>
 
 		<testng.version>7.10.2</testng.version>
-		<selenium.version>4.51.0</selenium.version>
+		<selenium.version>4.52.0</selenium.version>
 		<poi.version>5.2.5</poi.version>
 		<extent.version>5.1.1</extent.version>
 		<log4j.version>2.24.3</log4j.version>
