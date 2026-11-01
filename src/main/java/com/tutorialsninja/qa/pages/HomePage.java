@@ -65,7 +65,9 @@ public class HomePage extends BasePage {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(loginOption)).click();
         } catch (Exception e) {
-            ((JavascriptExecutor) driver).executeScript("window.location.href='index.php?route=account/login';");
+            String currentUrl = driver.getCurrentUrl();
+            String baseUrl = currentUrl.split("index\\.php")[0];
+            driver.get(baseUrl + "index.php?route=account/login");
         }
         return new LoginPage(driver);
     }
@@ -79,7 +81,9 @@ public class HomePage extends BasePage {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(registerOption)).click();
         } catch (Exception e) {
-            ((JavascriptExecutor) driver).executeScript("window.location.href='index.php?route=account/register';");
+            String currentUrl = driver.getCurrentUrl();
+            String baseUrl = currentUrl.split("index\\.php")[0];
+            driver.get(baseUrl + "index.php?route=account/register");
         }
         return new RegisterPage(driver);
     }

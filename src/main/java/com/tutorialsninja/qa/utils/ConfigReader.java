@@ -48,7 +48,7 @@ public final class ConfigReader {
             } catch (Exception ignored) {}
         }
 
-        // 3. Fallback: Search in common maven directory structures on the filesystem
+        // 3. Fallback: Search common maven filesystem paths
         if (!loaded) {
             String[] searchPaths = {
                 Paths.get(System.getProperty("user.dir"), "src", "test", "resources", fileName).toString(),
@@ -76,13 +76,11 @@ public final class ConfigReader {
     }
 
     public static String getProperty(String key) {
-        // Priority 1: Command line / JVM arguments (-Dkey=value)
         String sysProp = System.getProperty(key);
         if (sysProp != null && !sysProp.isBlank()) {
             return sysProp.trim();
         }
 
-        // Priority 2: Properties files
         String val = prop.getProperty(key);
         if (val == null) {
             throw new IllegalArgumentException(

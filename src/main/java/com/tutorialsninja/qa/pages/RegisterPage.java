@@ -28,14 +28,17 @@ public class RegisterPage extends BasePage {
     @FindBy(name = "agree")
     private WebElement privacyPolicyCheckbox;
 
+    @FindBy(xpath = "//input[@name='newsletter'][@value='1']")
+    private WebElement yesNewsletterOption;
+
     @FindBy(xpath = "//input[@value='Continue']")
     private WebElement continueButton;
 
-    @FindBy(xpath = "//input[@name='newsletter'][@value='1']")
-    private WebElement subscribeNewsletterOption;
+    @FindBy(xpath = "//div[contains(@class,'alert-danger')]")
+    private WebElement duplicateEmailAddressWarning;
 
-    @FindBy(xpath = "//div[contains(@class,'alert-dismissible')]")
-    private WebElement warningAlert;
+    @FindBy(xpath = "//div[contains(@class,'alert-danger')]")
+    private WebElement privacyPolicyWarning;
 
     @FindBy(xpath = "//input[@id='input-firstname']/following-sibling::div")
     private WebElement firstNameWarning;
@@ -68,11 +71,11 @@ public class RegisterPage extends BasePage {
         sendKeys(lastNameField, lastNameText);
     }
 
-    public void enterEmail(String emailText) {
+    public void enterEmailAddress(String emailText) {
         sendKeys(emailAddressField, emailText);
     }
 
-    public void enterTelephone(String telephoneText) {
+    public void enterTelephoneNumber(String telephoneText) {
         sendKeys(telephoneField, telephoneText);
     }
 
@@ -84,58 +87,48 @@ public class RegisterPage extends BasePage {
         sendKeys(passwordConfirmField, passwordText);
     }
 
-    public void checkPrivacyPolicy() {
+    public void selectPrivacyPolicy() {
         click(privacyPolicyCheckbox);
     }
 
-    public void selectSubscribeNewsletter() {
-        click(subscribeNewsletterOption);
+    public void selectYesNewsletterOption() {
+        click(yesNewsletterOption);
     }
 
-    public AccountSuccessPage clickContinue() {
+    public AccountSuccessPage clickOnContinueButton() {
         click(continueButton);
         return new AccountSuccessPage(driver);
     }
 
-    public AccountSuccessPage registerWithMandatoryFields(
-            String firstName, 
-            String lastName, 
-            String email, 
-            String telephone, 
-            String password) {
+    public AccountSuccessPage registerWithMandatoryFields(String firstName, String lastName, String email, String telephone, String password) {
         enterFirstName(firstName);
         enterLastName(lastName);
-        enterEmail(email);
-        enterTelephone(telephone);
+        enterEmailAddress(email);
+        enterTelephoneNumber(telephone);
         enterPassword(password);
         enterConfirmPassword(password);
-        checkPrivacyPolicy();
-        return clickContinue();
+        selectPrivacyPolicy();
+        return clickOnContinueButton();
     }
 
-    public AccountSuccessPage registerWithAllFields(
-            String firstName, 
-            String lastName, 
-            String email, 
-            String telephone, 
-            String password) {
+    public AccountSuccessPage registerWithAllFields(String firstName, String lastName, String email, String telephone, String password) {
         enterFirstName(firstName);
         enterLastName(lastName);
-        enterEmail(email);
-        enterTelephone(telephone);
+        enterEmailAddress(email);
+        enterTelephoneNumber(telephone);
         enterPassword(password);
         enterConfirmPassword(password);
-        selectSubscribeNewsletter();
-        checkPrivacyPolicy();
-        return clickContinue();
+        selectYesNewsletterOption();
+        selectPrivacyPolicy();
+        return clickOnContinueButton();
     }
 
     public String retrieveDuplicateEmailAddressWarning() {
-        return getText(warningAlert);
+        return getText(duplicateEmailAddressWarning);
     }
 
     public String retrievePrivacyPolicyWarning() {
-        return getText(warningAlert);
+        return getText(privacyPolicyWarning);
     }
 
     public String retrieveFirstNameWarning() {
@@ -156,21 +149,5 @@ public class RegisterPage extends BasePage {
 
     public String retrievePasswordWarning() {
         return getText(passwordWarning);
-    }
-
-    public boolean displayStatusOfWarningMessages(
-            String expectedPrivacyPolicyWarning,
-            String expectedFirstNameWarning,
-            String expectedLastNameWarning,
-            String expectedEmailWarning,
-            String expectedTelephoneWarning,
-            String expectedPasswordWarning) {
-
-        return getText(warningAlert).contains(expectedPrivacyPolicyWarning)
-                && getText(firstNameWarning).equals(expectedFirstNameWarning)
-                && getText(lastNameWarning).equals(expectedLastNameWarning)
-                && getText(emailWarning).equals(expectedEmailWarning)
-                && getText(telephoneWarning).equals(expectedTelephoneWarning)
-                && getText(passwordWarning).equals(expectedPasswordWarning);
     }
 }

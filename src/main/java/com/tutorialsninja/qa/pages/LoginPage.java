@@ -21,7 +21,6 @@ public class LoginPage extends BasePage {
 
     public LoginPage(WebDriver driver) {
         super(driver);
-        // Ensure browser has completed navigation to the login route
         wait.until(ExpectedConditions.or(
             ExpectedConditions.urlContains("route=account/login"),
             ExpectedConditions.visibilityOf(emailAddressField)
