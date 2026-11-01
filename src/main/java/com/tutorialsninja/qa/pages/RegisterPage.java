@@ -100,6 +100,11 @@ public class RegisterPage extends BasePage {
         return new AccountSuccessPage(driver);
     }
 
+    // Resolves: registerPage.clickContinue()
+    public void clickContinue() {
+        click(continueButton);
+    }
+
     public AccountSuccessPage registerWithMandatoryFields(String firstName, String lastName, String email, String telephone, String password) {
         enterFirstName(firstName);
         enterLastName(lastName);
@@ -149,5 +154,24 @@ public class RegisterPage extends BasePage {
 
     public String retrievePasswordWarning() {
         return getText(passwordWarning);
+    }
+
+    // Resolves: registerPage.displayStatusOfWarningMessages(...)
+    public boolean displayStatusOfWarningMessages(
+            String expectedPrivacyPolicyWarning,
+            String expectedFirstNameWarning,
+            String expectedLastNameWarning,
+            String expectedEmailWarning,
+            String expectedTelephoneWarning,
+            String expectedPasswordWarning) {
+
+        boolean bPrivacyPolicy = retrievePrivacyPolicyWarning().contains(expectedPrivacyPolicyWarning);
+        boolean bFirstName = retrieveFirstNameWarning().equals(expectedFirstNameWarning);
+        boolean bLastName = retrieveLastNameWarning().equals(expectedLastNameWarning);
+        boolean bEmail = retrieveEmailWarning().equals(expectedEmailWarning);
+        boolean bTelephone = retrieveTelephoneWarning().equals(expectedTelephoneWarning);
+        boolean bPassword = retrievePasswordWarning().equals(expectedPasswordWarning);
+
+        return bPrivacyPolicy && bFirstName && bLastName && bEmail && bTelephone && bPassword;
     }
 }
