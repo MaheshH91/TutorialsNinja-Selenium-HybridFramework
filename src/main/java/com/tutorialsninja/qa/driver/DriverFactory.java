@@ -44,29 +44,34 @@ public final class DriverFactory {
 				edgeOptions.addArguments("--disable-gpu");
 				edgeOptions.addArguments("--window-size=1920,1080");
 				edgeOptions.addArguments("--remote-allow-origins=*");
+				// Critical for Windows Service (Session 0) execution:
+				edgeOptions.addArguments("--disable-extensions");
+				edgeOptions.addArguments("--disable-software-rasterizer");
+				edgeOptions.addArguments("--user-data-dir=" + System.getProperty("java.io.tmpdir") + "edge-ci-profile-"
+						+ System.currentTimeMillis());
 			}
 			driver = new EdgeDriver(edgeOptions);
 			break;
 
 		case "chrome":
-		default:
-			ChromeOptions chromeOptions = new ChromeOptions();
-			chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-			if (isHeadless) {
-				chromeOptions.addArguments("--headless=new");
-				chromeOptions.addArguments("--no-sandbox");
-				chromeOptions.addArguments("--disable-dev-shm-usage");
-				chromeOptions.addArguments("--disable-gpu");
-				chromeOptions.addArguments("--window-size=1920,1080");
-				chromeOptions.addArguments("--start-maximized");
-				chromeOptions.addArguments("--ignore-certificate-errors");
-				chromeOptions.addArguments("--remote-allow-origins=*");
-				chromeOptions.addArguments(
-						"--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-			}
-			driver = new ChromeDriver(chromeOptions);
-			break;
-		}
+        default:
+            ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+            if (isHeadless) {
+                chromeOptions.addArguments("--headless=new");
+                chromeOptions.addArguments("--no-sandbox");
+                chromeOptions.addArguments("--disable-dev-shm-usage");
+                chromeOptions.addArguments("--disable-gpu");
+                chromeOptions.addArguments("--window-size=1920,1080");
+                chromeOptions.addArguments("--start-maximized");
+                chromeOptions.addArguments("--ignore-certificate-errors");
+                chromeOptions.addArguments("--remote-allow-origins=*");
+                chromeOptions.addArguments("--disable-extensions");
+                chromeOptions.addArguments("--disable-software-rasterizer");
+                chromeOptions.addArguments("--user-data-dir=" + System.getProperty("java.io.tmpdir") + "chrome-ci-profile-" + System.currentTimeMillis());
+            }
+            driver = new ChromeDriver(chromeOptions);
+            break;		}
 
 		driver.manage().window().setSize(new Dimension(1920, 1080));
 		driver.manage().window().maximize();
