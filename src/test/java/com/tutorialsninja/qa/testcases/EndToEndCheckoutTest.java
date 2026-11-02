@@ -68,15 +68,16 @@ public class EndToEndCheckoutTest extends BaseTest {
 
        
      // 4. Checkout Steps
+     // 4. Checkout Steps
         checkoutPage = cartPage.clickOnCheckoutButton();
         checkoutPage.completeCheckoutSteps(
                 ConfigReader.getProperty("firstName"),
                 ConfigReader.getProperty("lastName"),
-                "MG Road, Swargate",
-                "Pune",
-                "411001",
-                "India",
-                "Maharashtra"
+                ConfigReader.getProperty("billingAddress1"),
+                ConfigReader.getProperty("billingCity"),
+                ConfigReader.getProperty("billingPostCode"),
+                ConfigReader.getProperty("billingCountry"),
+                ConfigReader.getProperty("billingState")
         );
 
         // 5. Assert Final Confirmation
