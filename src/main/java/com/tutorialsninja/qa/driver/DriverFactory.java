@@ -2,6 +2,7 @@ package com.tutorialsninja.qa.driver;
 
 import java.io.File;
 import java.time.Duration;
+
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
@@ -11,94 +12,98 @@ import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+
 import com.tutorialsninja.qa.constants.FrameworkConstants;
 
 public final class DriverFactory {
 
-	private DriverFactory() {
-	}
+    private DriverFactory() {
+    }
 
-	public static WebDriver createDriver(String browserName, boolean isHeadless) {
-		WebDriver driver;
-		String browser = (browserName != null) ? browserName.trim().toLowerCase() : "chrome";
+    public static WebDriver createDriver(String browserName, boolean isHeadless) {
+        WebDriver driver;
+        String browser = (browserName != null) ? browserName.trim().toLowerCase() : "chrome";
 
-		// Must NOT reside in C:\ProgramData or C:\Windows under Windows SYSTEM accounts
-		String baseProfileDir = "C:" + File.separator + "Temp" + File.separator + "browser-profiles";
-		File dir = new File(baseProfileDir);
-		if (!dir.exists()) {
-			dir.mkdirs();
-		}
-		String safeUserDataDir = baseProfileDir + File.separator + "profile-" + System.currentTimeMillis() + "-"
-				+ Thread.currentThread().threadId();
+        // Directory outside of C:\ProgramData and C:\Windows for Session 0 Jenkins write access
+        String baseProfileDir = "C:" + File.separator + "Temp" + File.separator + "browser-profiles";
+        File dir = new File(baseProfileDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
 
-		switch (browser) {
-		case "firefox":
-			FirefoxOptions firefoxOptions = new FirefoxOptions();
-			firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-			if (isHeadless) {
-				firefoxOptions.addArguments("-headless");
-				firefoxOptions.addArguments("--headless");
-				firefoxOptions.addArguments("--width=1920");
-				firefoxOptions.addArguments("--height=1080");
-			}
-			driver = new FirefoxDriver(firefoxOptions);
-			break;
+        // Unique directory per thread to eliminate parallel test profile lock collisions
+        String safeUserDataDir = baseProfileDir + File.separator + "profile-" + System.currentTimeMillis() + "-"
+                + Thread.currentThread().threadId();
 
-		case "edge":
-			EdgeOptions edgeOptions = new EdgeOptions();
-			edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+        switch (browser) {
+        case "firefox":
+            FirefoxOptions firefoxOptions = new FirefoxOptions();
+            firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+            if (isHeadless) {
+                firefoxOptions.addArguments("-headless");
+                firefoxOptions.addArguments("--headless");
+                firefoxOptions.addArguments("--width=1920");
+                firefoxOptions.addArguments("--height=1080");
+            }
+            driver = new FirefoxDriver(firefoxOptions);
+            break;
 
-			if (isHeadless) {
-				// Use legacy headless flag for Windows Service (Session 0) compatibility
-				edgeOptions.addArguments("--headless");
-				edgeOptions.addArguments("--disable-gpu");
-				edgeOptions.addArguments("--no-sandbox");
-				edgeOptions.addArguments("--disable-dev-shm-usage");
-				edgeOptions.addArguments("--window-size=1920,1080");
-				edgeOptions.addArguments("--remote-allow-origins=*");
-				edgeOptions.addArguments("--disable-extensions");
-				edgeOptions.addArguments("--disable-software-rasterizer");
+        case "edge":
+            EdgeOptions edgeOptions = new EdgeOptions();
+            edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-				// Bypass Windows Session 0 AppContainer & Renderer crashes under SYSTEM account
-				edgeOptions.addArguments("--no-zygote");
-				edgeOptions.addArguments("--disable-features=RendererAppContainer");
-				edgeOptions.addArguments("--enable-automation");
-				edgeOptions.addArguments("--remote-debugging-port=0");
+            if (isHeadless) {
+                // Modern Chromium headless mode
+                edgeOptions.addArguments("--headless=new");
+                edgeOptions.addArguments("--disable-gpu");
+                edgeOptions.addArguments("--no-sandbox");
+                edgeOptions.addArguments("--disable-dev-shm-usage");
+                edgeOptions.addArguments("--window-size=1920,1080");
+                edgeOptions.addArguments("--remote-allow-origins=*");
+                edgeOptions.addArguments("--disable-extensions");
+                edgeOptions.addArguments("--disable-software-rasterizer");
 
-				// Isolate browser profile into a dedicated, clean folder
-				String edgeProfile = "C:\\Temp\\browser-profiles\\edge-" + System.currentTimeMillis() + "-"
-						+ Thread.currentThread().threadId();
-				edgeOptions.addArguments("--user-data-dir=" + edgeProfile);
-			}
+                // Windows Session 0 / SYSTEM account compatibility
+                edgeOptions.addArguments("--disable-features=RendererAppContainer");
 
-			driver = new EdgeDriver(edgeOptions);
-			break;
+                // Dedicated isolated profile per test thread
+                edgeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
+            }
 
-		case "chrome":
-		default:
-			ChromeOptions chromeOptions = new ChromeOptions();
-			chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-			if (isHeadless) {
-				chromeOptions.addArguments("--headless=new");
-				chromeOptions.addArguments("--no-sandbox");
-				chromeOptions.addArguments("--disable-dev-shm-usage");
-				chromeOptions.addArguments("--disable-gpu");
-				chromeOptions.addArguments("--window-size=1920,1080");
-				chromeOptions.addArguments("--start-maximized");
-				chromeOptions.addArguments("--ignore-certificate-errors");
-				chromeOptions.addArguments("--remote-allow-origins=*");
-				chromeOptions.addArguments("--disable-extensions");
-				chromeOptions.addArguments("--disable-software-rasterizer");
-				chromeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
-			}
-			driver = new ChromeDriver(chromeOptions);
-			break;
-		}
+            driver = new EdgeDriver(edgeOptions);
+            break;
 
-		driver.manage().window().setSize(new Dimension(1920, 1080));
-		driver.manage().window().maximize();
-		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.PAGE_LOAD_TIMEOUT));
+        case "chrome":
+        default:
+            ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-		return driver;
-	}
+            if (isHeadless) {
+                chromeOptions.addArguments("--headless=new");
+                chromeOptions.addArguments("--no-sandbox");
+                chromeOptions.addArguments("--disable-dev-shm-usage");
+                chromeOptions.addArguments("--disable-gpu");
+                chromeOptions.addArguments("--window-size=1920,1080");
+                chromeOptions.addArguments("--ignore-certificate-errors");
+                chromeOptions.addArguments("--remote-allow-origins=*");
+                chromeOptions.addArguments("--disable-extensions");
+                chromeOptions.addArguments("--disable-software-rasterizer");
+                chromeOptions.addArguments("--disable-features=RendererAppContainer");
+                chromeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
+            }
+
+            driver = new ChromeDriver(chromeOptions);
+            break;
+        }
+
+        // Only invoke OS window management when running in headed/interactive mode
+        if (!isHeadless) {
+            driver.manage().window().setSize(new Dimension(1920, 1080));
+            driver.manage().window().maximize();
+        }
+
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.PAGE_LOAD_TIMEOUT));
+
+        return driver;
+    }
 }
