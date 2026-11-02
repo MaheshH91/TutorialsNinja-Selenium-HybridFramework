@@ -36,6 +36,8 @@ public class EndToEndCheckoutTest extends BaseTest {
 
     @Test(priority = 1, description = "E2E: Register user -> Search product -> Add to cart -> Checkout -> Confirm order")
     public void verifyEndToEndProductCheckoutWorkflow() {
+        WebDriver driver = DriverManager.getDriver();
+
         // 1. User Registration
         registerPage = homePage.navigateToRegisterPage();
         accountSuccessPage = registerPage.registerWithMandatoryFields(
@@ -49,26 +51,42 @@ public class EndToEndCheckoutTest extends BaseTest {
         Assert.assertEquals(
                 accountSuccessPage.retrieveAccountSuccessPageHeading(),
                 ConfigReader.getProperty("accountSuccessfullyCreatedHeading"),
-                "User registration failed in E2E workflow."
+                "User registration failed during E2E workflow."
         );
 
-        // 2. Search for valid product
+        // 2. Search for Product (Rebind HomePage to current driver context)
+        homePage = new HomePage(driver);
         searchPage = homePage.searchForAProduct(ConfigReader.getProperty("validProduct"));
         Assert.assertTrue(
                 searchPage.displayStatusOfHPValidProduct(),
                 "Target product not found during E2E flow."
         );
 
-        // 3. Add to Cart & Navigate to Cart Page
+        // 3. Add to Cart & Navigate to Cart
         searchPage.addFirstDisplayedProductToCart();
         cartPage = searchPage.navigateToShoppingCartPage();
 
-        // 4. Checkout
+       
+     // 4. Checkout Steps
         checkoutPage = cartPage.clickOnCheckoutButton();
-        checkoutPage.enterBillingDetails("Mahesh", "Holkar", "Main Street 10", "Pune", "411001");
-        checkoutPage.proceedThroughShippingAndPayment();
+        checkoutPage.completeCheckoutSteps(
+                ConfigReader.getProperty("firstName"),
+                ConfigReader.getProperty("lastName"),
+                "MG Road, Swargate",
+                "Pune",
+                "411001",
+                "India",
+                "Maharashtra"
+        );
 
-        // 5. Assert Order Confirmation
+        // 5. Assert Final Confirmation
+        Assert.assertEquals(
+                checkoutPage.retrieveOrderSuccessHeading(),
+                "Your order has been placed!",
+                "Order confirmation heading mismatch."
+        );
+
+        // 5. Assert Final Confirmation
         Assert.assertEquals(
                 checkoutPage.retrieveOrderSuccessHeading(),
                 "Your order has been placed!",
