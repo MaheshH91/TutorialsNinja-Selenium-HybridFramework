@@ -15,75 +15,90 @@ import com.tutorialsninja.qa.constants.FrameworkConstants;
 
 public final class DriverFactory {
 
-    private DriverFactory() {}
+	private DriverFactory() {
+	}
 
-    public static WebDriver createDriver(String browserName, boolean isHeadless) {
-        WebDriver driver;
-        String browser = (browserName != null) ? browserName.trim().toLowerCase() : "chrome";
+	public static WebDriver createDriver(String browserName, boolean isHeadless) {
+		WebDriver driver;
+		String browser = (browserName != null) ? browserName.trim().toLowerCase() : "chrome";
 
-        // Must NOT reside in C:\ProgramData or C:\Windows under Windows SYSTEM accounts
-        String baseProfileDir = "C:" + File.separator + "Temp" + File.separator + "browser-profiles";
-        File dir = new File(baseProfileDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        String safeUserDataDir = baseProfileDir + File.separator + "profile-" + System.currentTimeMillis() + "-" + Thread.currentThread().threadId();
+		// Must NOT reside in C:\ProgramData or C:\Windows under Windows SYSTEM accounts
+		String baseProfileDir = "C:" + File.separator + "Temp" + File.separator + "browser-profiles";
+		File dir = new File(baseProfileDir);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		String safeUserDataDir = baseProfileDir + File.separator + "profile-" + System.currentTimeMillis() + "-"
+				+ Thread.currentThread().threadId();
 
-        switch (browser) {
-            case "firefox":
-                FirefoxOptions firefoxOptions = new FirefoxOptions();
-                firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-                if (isHeadless) {
-                    firefoxOptions.addArguments("-headless");
-                    firefoxOptions.addArguments("--headless");
-                    firefoxOptions.addArguments("--width=1920");
-                    firefoxOptions.addArguments("--height=1080");
-                }
-                driver = new FirefoxDriver(firefoxOptions);
-                break;
+		switch (browser) {
+		case "firefox":
+			FirefoxOptions firefoxOptions = new FirefoxOptions();
+			firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+			if (isHeadless) {
+				firefoxOptions.addArguments("-headless");
+				firefoxOptions.addArguments("--headless");
+				firefoxOptions.addArguments("--width=1920");
+				firefoxOptions.addArguments("--height=1080");
+			}
+			driver = new FirefoxDriver(firefoxOptions);
+			break;
 
-            case "edge":
-                EdgeOptions edgeOptions = new EdgeOptions();
-                edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-                if (isHeadless) {
-                    edgeOptions.addArguments("--headless=new");
-                    edgeOptions.addArguments("--no-sandbox");
-                    edgeOptions.addArguments("--disable-dev-shm-usage");
-                    edgeOptions.addArguments("--disable-gpu");
-                    edgeOptions.addArguments("--window-size=1920,1080");
-                    edgeOptions.addArguments("--remote-allow-origins=*");
-                    edgeOptions.addArguments("--disable-extensions");
-                    edgeOptions.addArguments("--disable-software-rasterizer");
-                    edgeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
-                }
-                driver = new EdgeDriver(edgeOptions);
-                break;
+		case "edge":
+			EdgeOptions edgeOptions = new EdgeOptions();
+			edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-            case "chrome":
-            default:
-                ChromeOptions chromeOptions = new ChromeOptions();
-                chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-                if (isHeadless) {
-                    chromeOptions.addArguments("--headless=new");
-                    chromeOptions.addArguments("--no-sandbox");
-                    chromeOptions.addArguments("--disable-dev-shm-usage");
-                    chromeOptions.addArguments("--disable-gpu");
-                    chromeOptions.addArguments("--window-size=1920,1080");
-                    chromeOptions.addArguments("--start-maximized");
-                    chromeOptions.addArguments("--ignore-certificate-errors");
-                    chromeOptions.addArguments("--remote-allow-origins=*");
-                    chromeOptions.addArguments("--disable-extensions");
-                    chromeOptions.addArguments("--disable-software-rasterizer");
-                    chromeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
-                }
-                driver = new ChromeDriver(chromeOptions);
-                break;
-        }
+			if (isHeadless) {
+				// Use legacy headless flag for Windows Service (Session 0) compatibility
+				edgeOptions.addArguments("--headless");
+				edgeOptions.addArguments("--disable-gpu");
+				edgeOptions.addArguments("--no-sandbox");
+				edgeOptions.addArguments("--disable-dev-shm-usage");
+				edgeOptions.addArguments("--window-size=1920,1080");
+				edgeOptions.addArguments("--remote-allow-origins=*");
+				edgeOptions.addArguments("--disable-extensions");
+				edgeOptions.addArguments("--disable-software-rasterizer");
 
-        driver.manage().window().setSize(new Dimension(1920, 1080));
-        driver.manage().window().maximize();
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.PAGE_LOAD_TIMEOUT));
+				// Bypass Windows Session 0 AppContainer & Renderer crashes under SYSTEM account
+				edgeOptions.addArguments("--no-zygote");
+				edgeOptions.addArguments("--disable-features=RendererAppContainer");
+				edgeOptions.addArguments("--enable-automation");
+				edgeOptions.addArguments("--remote-debugging-port=0");
 
-        return driver;
-    }
+				// Isolate browser profile into a dedicated, clean folder
+				String edgeProfile = "C:\\Temp\\browser-profiles\\edge-" + System.currentTimeMillis() + "-"
+						+ Thread.currentThread().threadId();
+				edgeOptions.addArguments("--user-data-dir=" + edgeProfile);
+			}
+
+			driver = new EdgeDriver(edgeOptions);
+			break;
+
+		case "chrome":
+		default:
+			ChromeOptions chromeOptions = new ChromeOptions();
+			chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+			if (isHeadless) {
+				chromeOptions.addArguments("--headless=new");
+				chromeOptions.addArguments("--no-sandbox");
+				chromeOptions.addArguments("--disable-dev-shm-usage");
+				chromeOptions.addArguments("--disable-gpu");
+				chromeOptions.addArguments("--window-size=1920,1080");
+				chromeOptions.addArguments("--start-maximized");
+				chromeOptions.addArguments("--ignore-certificate-errors");
+				chromeOptions.addArguments("--remote-allow-origins=*");
+				chromeOptions.addArguments("--disable-extensions");
+				chromeOptions.addArguments("--disable-software-rasterizer");
+				chromeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
+			}
+			driver = new ChromeDriver(chromeOptions);
+			break;
+		}
+
+		driver.manage().window().setSize(new Dimension(1920, 1080));
+		driver.manage().window().maximize();
+		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.PAGE_LOAD_TIMEOUT));
+
+		return driver;
+	}
 }
