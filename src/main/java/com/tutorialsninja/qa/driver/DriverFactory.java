@@ -53,12 +53,26 @@ public final class DriverFactory {
             edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
             if (isHeadless) {
+                // Modern Chromium headless mode
                 edgeOptions.addArguments("--headless=new");
+                edgeOptions.addArguments("--disable-gpu");
+                edgeOptions.addArguments("--no-sandbox");
+                edgeOptions.addArguments("--disable-dev-shm-usage");
                 edgeOptions.addArguments("--window-size=1920,1080");
+                edgeOptions.addArguments("--remote-allow-origins=*");
+                edgeOptions.addArguments("--disable-extensions");
+                edgeOptions.addArguments("--disable-software-rasterizer");
+
+                // Windows Session 0 / SYSTEM account compatibility
+                edgeOptions.addArguments("--disable-features=RendererAppContainer");
+
+                // Dedicated isolated profile per test thread
+                edgeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
             }
 
             driver = new EdgeDriver(edgeOptions);
             break;
+
         case "chrome":
         default:
             ChromeOptions chromeOptions = new ChromeOptions();
