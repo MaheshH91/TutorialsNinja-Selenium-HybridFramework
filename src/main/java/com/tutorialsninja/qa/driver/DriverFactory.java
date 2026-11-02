@@ -21,8 +21,13 @@ public final class DriverFactory {
         WebDriver driver;
         String browser = (browserName != null) ? browserName.trim().toLowerCase() : "chrome";
 
-        // Safe user-data directory inside target/ workspace (writable across SYSTEM and user sessions)
-        String safeUserDataDir = System.getProperty("user.dir") + File.separator + "target" + File.separator + "browser-profile-" + Thread.currentThread().threadId();
+        // Must NOT reside in C:\ProgramData or C:\Windows under Windows SYSTEM accounts
+        String baseProfileDir = "C:" + File.separator + "Temp" + File.separator + "browser-profiles";
+        File dir = new File(baseProfileDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        String safeUserDataDir = baseProfileDir + File.separator + "profile-" + System.currentTimeMillis() + "-" + Thread.currentThread().threadId();
 
         switch (browser) {
             case "firefox":
@@ -41,7 +46,6 @@ public final class DriverFactory {
                 EdgeOptions edgeOptions = new EdgeOptions();
                 edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
                 if (isHeadless) {
-                    edgeOptions.addArguments("--headless");
                     edgeOptions.addArguments("--headless=new");
                     edgeOptions.addArguments("--no-sandbox");
                     edgeOptions.addArguments("--disable-dev-shm-usage");
@@ -60,7 +64,6 @@ public final class DriverFactory {
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
                 if (isHeadless) {
-                    chromeOptions.addArguments("--headless");
                     chromeOptions.addArguments("--headless=new");
                     chromeOptions.addArguments("--no-sandbox");
                     chromeOptions.addArguments("--disable-dev-shm-usage");
