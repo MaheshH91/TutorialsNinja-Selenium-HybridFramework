@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-   tools {
+    tools {
         maven 'MAVEN_HOME'
         jdk 'JAVA_HOME'
     }
@@ -10,12 +10,12 @@ pipeline {
         choice(
             name: 'BROWSER',
             choices: ['chrome', 'firefox', 'edge'],
-            description: 'Target browser for test execution'
+            description: 'Target browser for execution'
         )
         booleanParam(
             name: 'HEADLESS',
             defaultValue: true,
-            description: 'Run browser in headless mode (recommended for CI agents)'
+            description: 'Run browsers in headless mode for CI/CD'
         )
         string(
             name: 'RECIPIENT_LIST',
@@ -31,10 +31,36 @@ pipeline {
     }
 
     stages {
-        stage('Clean Workspace & Checkout') {
+        stage('Clean Workspace & Pre-Flight Checks') {
             steps {
                 cleanWs()
                 checkout scm
+                script {
+                    if (!isUnix()) {
+                        // Purge corrupted Windows Session 0 Selenium cache and kill orphaned browser processes
+                        bat '''
+                            @echo off
+                            echo Cleaning up orphaned driver/browser processes...
+                            taskkill /F /IM chromedriver.exe /T 2>nul || exit 0
+                            taskkill /F /IM chrome.exe /T 2>nul || exit 0
+                            taskkill /F /IM msedgedriver.exe /T 2>nul || exit 0
+                            taskkill /F /IM msedge.exe /T 2>nul || exit 0
+                            taskkill /F /IM geckodriver.exe /T 2>nul || exit 0
+                            taskkill /F /IM firefox.exe /T 2>nul || exit 0
+
+                            echo Cleaning broken Selenium Manager cache in system profiles...
+                            if exist "C:\\Windows\\SysWOW64\\config\\systemprofile\\.cache\\selenium" (
+                                rmdir /s /q "C:\\Windows\\SysWOW64\\config\\systemprofile\\.cache\\selenium" 2>nul || exit 0
+                            )
+                            if exist "C:\\WINDOWS\\system32\\config\\systemprofile\\.cache\\selenium" (
+                                rmdir /s /q "C:\\WINDOWS\\system32\\config\\systemprofile\\.cache\\selenium" 2>nul || exit 0
+                            )
+                            if exist "C:\\Temp\\browser-profiles" (
+                                rmdir /s /q "C:\\Temp\\browser-profiles" 2>nul || exit 0
+                            )
+                        '''
+                    }
+                }
             }
         }
 
@@ -62,7 +88,7 @@ pipeline {
                 script {
                     def mavenCmd = "mvn clean test -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}"
                     
-                    // Allow pipeline to proceed to post-build reporting stages even on test assertions/failures
+                    // Allow pipeline to proceed to reporting stages even on test assertions/failures
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         if (isUnix()) {
                             sh "${mavenCmd}"
@@ -83,7 +109,7 @@ pipeline {
             // 2. Publish TestNG XML Results
             testNG reportFilenamePattern: 'target/surefire-reports/testng-results.xml'
 
-            // 3. Publish HTML Report inside Jenkins UI (Requires HTML Publisher Plugin)
+            // 3. Publish HTML Report inside Jenkins UI
             publishHTML target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -93,7 +119,7 @@ pipeline {
                 reportName: 'Extent Execution Dashboard'
             ]
 
-            // 4. Send Rich HTML Email Notification with Attached Extent Report (Requires Email Extension Plugin)
+            // 4. Send Rich HTML Email Notification with Attached Extent Report
             emailext (
                 subject: "[${currentBuild.currentResult}] TutorialsNinja Automation Suite - Build #${env.BUILD_NUMBER}",
                 body: """
