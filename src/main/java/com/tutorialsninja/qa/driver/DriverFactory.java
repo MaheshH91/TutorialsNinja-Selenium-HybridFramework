@@ -51,25 +51,30 @@ public final class DriverFactory {
         case "edge":
             EdgeOptions edgeOptions = new EdgeOptions();
             edgeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-
             if (isHeadless) {
-                // Modern Chromium headless mode
+                // Headless and basic execution
                 edgeOptions.addArguments("--headless=new");
-                edgeOptions.addArguments("--disable-gpu");
+                edgeOptions.addArguments("--window-size=1920,1080");
                 edgeOptions.addArguments("--no-sandbox");
                 edgeOptions.addArguments("--disable-dev-shm-usage");
-                edgeOptions.addArguments("--window-size=1920,1080");
+                edgeOptions.addArguments("--disable-gpu");
                 edgeOptions.addArguments("--remote-allow-origins=*");
                 edgeOptions.addArguments("--disable-extensions");
                 edgeOptions.addArguments("--disable-software-rasterizer");
 
-                // Windows Session 0 / SYSTEM account compatibility
-                edgeOptions.addArguments("--disable-features=RendererAppContainer");
+                // Crucial flags for Edge under Windows Service Session 0
+                edgeOptions.addArguments("--disable-features=RendererAppContainer,msSmartScreenProtection");
+                edgeOptions.addArguments("--no-default-browser-check");
+                edgeOptions.addArguments("--no-first-run");
+                edgeOptions.addArguments("--disable-background-networking");
+                edgeOptions.addArguments("--disable-sync");
+                edgeOptions.addArguments("--disable-default-apps");
+                edgeOptions.addArguments("--remote-debugging-pipe");
 
-                // Dedicated isolated profile per test thread
-                edgeOptions.addArguments("--user-data-dir=" + safeUserDataDir);
+                // Thread-safe neutral profile path
+                String edgeSafeDir = "C:\\Temp\\browser-profiles\\edge-" + System.currentTimeMillis() + "-" + Thread.currentThread().threadId();
+                edgeOptions.addArguments("--user-data-dir=" + edgeSafeDir);
             }
-
             driver = new EdgeDriver(edgeOptions);
             break;
 
